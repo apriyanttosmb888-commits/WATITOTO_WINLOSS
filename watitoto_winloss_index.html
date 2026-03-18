@@ -1,0 +1,1998 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WATITOTO WINLOSS — Neon Edition</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --void:         #020408;
+  --obsidian:     #050B12;
+  --surface-1:    #080F18;
+  --surface-2:    #0C1420;
+  --surface-3:    #101A28;
+  --surface-4:    #152030;
+
+  --neon-cyan:    #00F5FF;
+  --neon-pink:    #FF00A8;
+  --neon-lime:    #39FF14;
+  --neon-orange:  #FF6B00;
+  --neon-violet:  #BF00FF;
+  --neon-yellow:  #FFE000;
+  --neon-blue:    #0099FF;
+
+  --glow-cyan:    rgba(0,245,255,0.18);
+  --glow-pink:    rgba(255,0,168,0.18);
+  --glow-lime:    rgba(57,255,20,0.18);
+  --glow-orange:  rgba(255,107,0,0.15);
+  --glow-violet:  rgba(191,0,255,0.15);
+
+  --text-bright:  #E8F4FF;
+  --text-mid:     #7FA8C8;
+  --text-dim:     #3A5570;
+  --text-ghost:   #1A2D40;
+
+  --rim:          rgba(0,245,255,0.06);
+  --rim-hot:      rgba(0,245,255,0.2);
+
+  --font-display: 'Orbitron', monospace;
+  --font-body:    'Rajdhani', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+
+  --radius-sm:    4px;
+  --radius:       8px;
+  --radius-lg:    14px;
+  --radius-xl:    20px;
+
+  --ease-snap:    cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--void);
+  color: var(--text-mid);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── SCANLINES ───────────────────────── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,245,255,0.008) 2px,
+    rgba(0,245,255,0.008) 4px
+  );
+}
+
+/* ─── BACKGROUND ──────────────────────── */
+.bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+
+.bg-halo {
+  position: absolute; border-radius: 50%;
+  filter: blur(160px); pointer-events: none;
+}
+.halo-1 {
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(0,245,255,0.07) 0%, transparent 70%);
+  top: -200px; right: -100px;
+  animation: haloPulse 10s ease-in-out infinite;
+}
+.halo-2 {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(255,0,168,0.06) 0%, transparent 70%);
+  bottom: -100px; left: -100px;
+  animation: haloPulse 14s ease-in-out infinite reverse;
+}
+.halo-3 {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(191,0,255,0.05) 0%, transparent 70%);
+  top: 50%; left: 30%;
+  animation: haloPulse 18s ease-in-out infinite 3s;
+}
+@keyframes haloPulse {
+  0%,100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.6; }
+}
+
+/* Neon grid */
+.bg-grid {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0,245,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,245,255,0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  perspective: 500px;
+}
+
+/* ─── SHELL ───────────────────────────── */
+.shell {
+  position: relative; z-index: 10;
+  max-width: 1700px; margin: 0 auto;
+  padding: 18px 18px 60px;
+}
+
+/* ─── PANELS ──────────────────────────── */
+.panel {
+  background: var(--surface-2);
+  border: 1px solid var(--rim);
+  border-radius: var(--radius-lg);
+  transition: border-color 0.3s;
+}
+.panel:hover { border-color: rgba(0,245,255,0.12); }
+
+.panel-neon {
+  background: linear-gradient(145deg, rgba(8,15,24,0.97), rgba(5,11,18,0.99));
+  border: 1px solid rgba(0,245,255,0.15);
+  border-radius: var(--radius-lg);
+  position: relative; overflow: hidden;
+}
+.panel-neon::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-violet), transparent);
+  opacity: 0.6;
+}
+
+.panel-hot {
+  background: var(--surface-2);
+  border: 1px solid rgba(0,245,255,0.1);
+  border-radius: var(--radius-lg);
+  position: relative;
+}
+.panel-hot::after {
+  content: '';
+  position: absolute; inset: -1px; border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, rgba(0,245,255,0.08), rgba(191,0,255,0.05), transparent);
+  z-index: -1;
+}
+
+/* ─── NEON TEXT ───────────────────────── */
+.neon-cyan  { color: var(--neon-cyan);   text-shadow: 0 0 12px var(--neon-cyan), 0 0 30px rgba(0,245,255,0.4); }
+.neon-pink  { color: var(--neon-pink);   text-shadow: 0 0 12px var(--neon-pink), 0 0 30px rgba(255,0,168,0.4); }
+.neon-lime  { color: var(--neon-lime);   text-shadow: 0 0 12px var(--neon-lime), 0 0 30px rgba(57,255,20,0.4); }
+.neon-orange{ color: var(--neon-orange); text-shadow: 0 0 12px var(--neon-orange); }
+.neon-violet{ color: var(--neon-violet); text-shadow: 0 0 12px var(--neon-violet); }
+.neon-yellow{ color: var(--neon-yellow); text-shadow: 0 0 12px var(--neon-yellow); }
+
+/* ─── HEADER ──────────────────────────── */
+.header {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+  gap: 16px; padding: 20px 28px; margin-bottom: 18px;
+  background: linear-gradient(135deg, rgba(8,15,24,0.97), rgba(5,11,18,0.99));
+  border: 1px solid rgba(0,245,255,0.12);
+  border-radius: var(--radius-xl);
+  position: relative; overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink), var(--neon-violet), var(--neon-cyan));
+  background-size: 300% 100%;
+  animation: rainbowSlide 4s linear infinite;
+}
+.header::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,245,255,0.2), transparent);
+}
+@keyframes rainbowSlide {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 300% 0%; }
+}
+
+.brand-logo {
+  width: 52px; height: 52px; flex-shrink: 0;
+  background: linear-gradient(145deg, rgba(0,245,255,0.15), rgba(191,0,255,0.1));
+  border: 1px solid rgba(0,245,255,0.3);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 0 20px rgba(0,245,255,0.2), inset 0 0 20px rgba(0,245,255,0.05);
+  animation: logoGlow 3s ease-in-out infinite;
+}
+@keyframes logoGlow {
+  0%,100% { box-shadow: 0 0 20px rgba(0,245,255,0.2), inset 0 0 20px rgba(0,245,255,0.05); }
+  50% { box-shadow: 0 0 35px rgba(0,245,255,0.4), 0 0 60px rgba(0,245,255,0.1), inset 0 0 30px rgba(0,245,255,0.1); }
+}
+
+.brand-title {
+  font-family: var(--font-display);
+  font-size: 26px; font-weight: 900;
+  letter-spacing: 0.12em;
+  color: var(--text-bright);
+  text-shadow: 0 0 20px rgba(0,245,255,0.5), 0 0 40px rgba(0,245,255,0.2);
+  line-height: 1;
+}
+.brand-title span {
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-violet), var(--neon-pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: textShimmer 3s linear infinite;
+  background-size: 200% 100%;
+}
+@keyframes textShimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+/* ─── BADGES ──────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 3px;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  font-family: var(--font-display);
+}
+.badge-cyan   { background: rgba(0,245,255,0.1);   color: var(--neon-cyan);   border: 1px solid rgba(0,245,255,0.25); }
+.badge-pink   { background: rgba(255,0,168,0.1);   color: var(--neon-pink);   border: 1px solid rgba(255,0,168,0.25); }
+.badge-lime   { background: rgba(57,255,20,0.1);   color: var(--neon-lime);   border: 1px solid rgba(57,255,20,0.25); }
+.badge-violet { background: rgba(191,0,255,0.1);   color: var(--neon-violet); border: 1px solid rgba(191,0,255,0.25); }
+.badge-orange { background: rgba(255,107,0,0.1);   color: var(--neon-orange); border: 1px solid rgba(255,107,0,0.25); }
+.badge-yellow { background: rgba(255,224,0,0.1);   color: var(--neon-yellow); border: 1px solid rgba(255,224,0,0.25); }
+
+/* ─── BUTTONS ─────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 18px; border-radius: var(--radius); border: none; outline: none;
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer;
+  transition: all 0.25s var(--ease-snap);
+  position: relative; overflow: hidden;
+}
+.btn:active { transform: scale(0.96); }
+.btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(255,255,255,0.05);
+  transform: translateX(-100%);
+  transition: transform 0.3s;
+}
+.btn:hover::before { transform: translateX(0); }
+
+.btn-cyan {
+  background: linear-gradient(135deg, rgba(0,245,255,0.12), rgba(0,245,255,0.06));
+  color: var(--neon-cyan);
+  border: 1px solid rgba(0,245,255,0.3);
+  box-shadow: 0 0 15px rgba(0,245,255,0.1), inset 0 1px 0 rgba(0,245,255,0.1);
+}
+.btn-cyan:hover {
+  background: linear-gradient(135deg, rgba(0,245,255,0.2), rgba(0,245,255,0.1));
+  box-shadow: 0 0 25px rgba(0,245,255,0.3), 0 0 50px rgba(0,245,255,0.1);
+  transform: translateY(-1px);
+}
+
+.btn-pink {
+  background: linear-gradient(135deg, rgba(255,0,168,0.15), rgba(255,0,168,0.06));
+  color: var(--neon-pink);
+  border: 1px solid rgba(255,0,168,0.3);
+  box-shadow: 0 0 15px rgba(255,0,168,0.1);
+}
+.btn-pink:hover {
+  box-shadow: 0 0 25px rgba(255,0,168,0.35);
+  transform: translateY(-1px);
+}
+
+.btn-lime {
+  background: linear-gradient(135deg, rgba(57,255,20,0.12), rgba(57,255,20,0.05));
+  color: var(--neon-lime);
+  border: 1px solid rgba(57,255,20,0.3);
+  box-shadow: 0 0 15px rgba(57,255,20,0.1);
+}
+.btn-lime:hover {
+  box-shadow: 0 0 25px rgba(57,255,20,0.35);
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: rgba(255,255,255,0.03);
+  color: var(--text-mid);
+  border: 1px solid rgba(255,255,255,0.07);
+}
+.btn-ghost:hover {
+  background: rgba(0,245,255,0.06);
+  color: var(--neon-cyan);
+  border-color: rgba(0,245,255,0.2);
+}
+
+.btn-danger {
+  background: rgba(255,0,168,0.08);
+  color: var(--neon-pink);
+  border: 1px solid rgba(255,0,168,0.2);
+}
+.btn-danger:hover { background: rgba(255,0,168,0.18); }
+
+.btn-lg { padding: 13px 22px; font-size: 12px; }
+.btn-full { width: 100%; justify-content: center; }
+
+/* ─── NAVIGATION ──────────────────────── */
+.nav-wrap {
+  padding: 5px; margin-bottom: 18px;
+  background: rgba(5,11,18,0.9);
+  border: 1px solid rgba(0,245,255,0.08);
+  border-radius: var(--radius-lg);
+  display: flex; gap: 4px; overflow-x: auto;
+  backdrop-filter: blur(12px);
+}
+.nav-wrap::-webkit-scrollbar { height: 0; }
+
+.nav-tab {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 22px; border-radius: var(--radius);
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; white-space: nowrap; text-transform: uppercase;
+  color: var(--text-dim); cursor: pointer;
+  transition: all 0.25s var(--ease-snap);
+  border: 1px solid transparent;
+  background: none; position: relative;
+}
+.nav-tab:hover { color: var(--text-mid); background: rgba(0,245,255,0.04); }
+
+.nav-tab.active {
+  color: var(--neon-cyan);
+  background: linear-gradient(135deg, rgba(0,245,255,0.1), rgba(0,245,255,0.04));
+  border-color: rgba(0,245,255,0.2);
+  box-shadow: 0 0 20px rgba(0,245,255,0.1), inset 0 1px 0 rgba(0,245,255,0.1);
+  text-shadow: 0 0 10px rgba(0,245,255,0.6);
+}
+
+.nav-tab.active-slot {
+  color: var(--neon-violet);
+  background: linear-gradient(135deg, rgba(191,0,255,0.12), rgba(191,0,255,0.04));
+  border-color: rgba(191,0,255,0.25);
+  box-shadow: 0 0 20px rgba(191,0,255,0.15);
+  text-shadow: 0 0 10px rgba(191,0,255,0.6);
+}
+
+.nav-tab .tab-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+  animation: dotBlink 2s ease-in-out infinite;
+}
+@keyframes dotBlink {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ─── INPUTS ──────────────────────────── */
+.inp {
+  width: 100%;
+  background: rgba(5,11,18,0.8);
+  border: 1px solid rgba(0,245,255,0.08);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-family: var(--font-body); font-size: 13px;
+  color: var(--text-mid);
+  outline: none;
+  transition: all 0.25s var(--ease-snap);
+}
+.inp::placeholder { color: var(--text-ghost); }
+.inp:focus {
+  border-color: rgba(0,245,255,0.35);
+  background: rgba(0,245,255,0.04);
+  box-shadow: 0 0 0 3px rgba(0,245,255,0.05), 0 0 15px rgba(0,245,255,0.08);
+  color: var(--text-bright);
+}
+select.inp option { background: #0C1420; color: var(--text-mid); }
+
+.inp-label {
+  display: block; margin-bottom: 7px;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--neon-cyan);
+  font-family: var(--font-display);
+}
+
+/* ─── SECTION HEADERS ─────────────────── */
+.section-head {
+  padding: 16px 22px;
+  border-bottom: 1px solid rgba(0,245,255,0.06);
+  background: linear-gradient(135deg, rgba(0,245,255,0.04), transparent);
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 12px; flex-wrap: wrap;
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 700;
+  color: var(--text-bright); letter-spacing: 0.06em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-icon {
+  width: 30px; height: 30px; border-radius: 6px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,245,255,0.08); color: var(--neon-cyan);
+  border: 1px solid rgba(0,245,255,0.15);
+  box-shadow: 0 0 10px rgba(0,245,255,0.1);
+}
+
+/* ─── STAT CARDS ──────────────────────── */
+.stat-card {
+  background: var(--surface-2);
+  border-radius: var(--radius-lg);
+  padding: 20px; position: relative; overflow: hidden;
+  transition: all 0.3s var(--ease-snap);
+}
+.stat-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+}
+.stat-card:hover { transform: translateY(-3px); }
+
+.stat-card.cyan  { border: 1px solid rgba(0,245,255,0.15); box-shadow: 0 0 20px rgba(0,245,255,0.05); }
+.stat-card.cyan::before { background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent); }
+.stat-card.cyan:hover { box-shadow: 0 0 35px rgba(0,245,255,0.15); }
+
+.stat-card.pink  { border: 1px solid rgba(255,0,168,0.15); box-shadow: 0 0 20px rgba(255,0,168,0.05); }
+.stat-card.pink::before { background: linear-gradient(90deg, transparent, var(--neon-pink), transparent); }
+.stat-card.pink:hover { box-shadow: 0 0 35px rgba(255,0,168,0.15); }
+
+.stat-card.lime  { border: 1px solid rgba(57,255,20,0.15); box-shadow: 0 0 20px rgba(57,255,20,0.05); }
+.stat-card.lime::before { background: linear-gradient(90deg, transparent, var(--neon-lime), transparent); }
+.stat-card.lime:hover { box-shadow: 0 0 35px rgba(57,255,20,0.15); }
+
+.stat-card.violet { border: 1px solid rgba(191,0,255,0.15); box-shadow: 0 0 20px rgba(191,0,255,0.05); }
+.stat-card.violet::before { background: linear-gradient(90deg, transparent, var(--neon-violet), transparent); }
+.stat-card.violet:hover { box-shadow: 0 0 35px rgba(191,0,255,0.15); }
+
+.stat-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px;
+  font-family: var(--font-display);
+}
+.stat-value {
+  font-family: var(--font-mono);
+  font-size: 22px; font-weight: 600;
+  color: var(--text-bright); letter-spacing: -0.01em;
+}
+
+.stat-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.stat-icon.cyan   { background: rgba(0,245,255,0.08);   color: var(--neon-cyan);   border: 1px solid rgba(0,245,255,0.15); box-shadow: 0 0 12px rgba(0,245,255,0.15); }
+.stat-icon.pink   { background: rgba(255,0,168,0.08);   color: var(--neon-pink);   border: 1px solid rgba(255,0,168,0.15); box-shadow: 0 0 12px rgba(255,0,168,0.15); }
+.stat-icon.lime   { background: rgba(57,255,20,0.08);   color: var(--neon-lime);   border: 1px solid rgba(57,255,20,0.15); box-shadow: 0 0 12px rgba(57,255,20,0.15); }
+.stat-icon.violet { background: rgba(191,0,255,0.08);   color: var(--neon-violet); border: 1px solid rgba(191,0,255,0.15); box-shadow: 0 0 12px rgba(191,0,255,0.15); }
+
+/* ─── TABLES ──────────────────────────── */
+.data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.data-table th {
+  padding: 10px 16px; text-align: left;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text-dim);
+  background: rgba(0,245,255,0.03);
+  border-bottom: 1px solid rgba(0,245,255,0.06);
+  font-family: var(--font-display);
+}
+.data-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(0,245,255,0.03);
+  transition: background 0.15s;
+  font-size: 13px;
+}
+.data-table tr:hover td { background: rgba(0,245,255,0.02); }
+.data-table tr:last-child td { border-bottom: none; }
+
+/* ─── REPORT OUTPUT ───────────────────── */
+#reportOutput {
+  font-family: var(--font-mono);
+  font-size: 12px; line-height: 2;
+  color: var(--neon-cyan);
+  white-space: pre-wrap;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 8px rgba(0,245,255,0.3);
+}
+
+/* ─── DROP ZONE ───────────────────────── */
+.drop-zone {
+  border: 1px dashed rgba(0,245,255,0.15);
+  border-radius: var(--radius);
+  transition: all 0.25s;
+}
+.drop-zone:hover, .drop-zone.active {
+  border-color: rgba(0,245,255,0.4);
+  background: rgba(0,245,255,0.03);
+  box-shadow: 0 0 20px rgba(0,245,255,0.05);
+}
+.drop-zone textarea {
+  background: transparent; border: none; outline: none;
+  width: 100%; height: 130px; padding: 14px 16px;
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--text-mid); resize: none;
+  letter-spacing: 0.02em; line-height: 1.7; display: block;
+}
+.drop-zone textarea::placeholder { color: var(--text-ghost); }
+
+/* ─── PROVIDER ROWS ───────────────────── */
+.prov-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 13px; border-radius: var(--radius);
+  margin-bottom: 5px; border: 1px solid rgba(0,245,255,0.04);
+  background: rgba(5,11,18,0.5);
+  transition: all 0.2s;
+}
+.prov-row:hover { background: rgba(0,245,255,0.03); border-color: rgba(0,245,255,0.1); }
+.prov-row.gold {
+  background: linear-gradient(135deg, rgba(191,0,255,0.08), rgba(0,245,255,0.04));
+  border-color: rgba(191,0,255,0.15);
+}
+.prov-row.gold:hover { background: linear-gradient(135deg, rgba(191,0,255,0.14), rgba(0,245,255,0.06)); }
+
+.prov-inp {
+  width: 140px;
+  background: rgba(5,11,18,0.7);
+  border: 1px solid rgba(0,245,255,0.08);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  font-family: var(--font-mono); font-size: 12px;
+  color: var(--text-mid); text-align: right; outline: none;
+  transition: all 0.2s;
+}
+.prov-inp.gold-inp { border-color: rgba(191,0,255,0.15); background: rgba(191,0,255,0.05); }
+.prov-inp:focus { border-color: rgba(0,245,255,0.35); color: var(--neon-cyan); box-shadow: 0 0 10px rgba(0,245,255,0.08); }
+
+/* ─── PROGRESS ────────────────────────── */
+.prog-bar { height: 3px; background: rgba(255,255,255,0.04); border-radius: 2px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 2px; transition: width 0.8s var(--ease-snap); }
+
+/* ─── DIVIDER ─────────────────────────── */
+.divider { height: 1px; margin: 14px 0; background: rgba(0,245,255,0.06); }
+.divider-neon { background: linear-gradient(90deg, transparent, rgba(0,245,255,0.2), rgba(191,0,255,0.2), transparent); }
+
+/* ─── ELIGIBLE STATUS ─────────────────── */
+.eligible-yes { background: rgba(57,255,20,0.06); border: 1px solid rgba(57,255,20,0.2); border-radius: var(--radius); padding: 14px 18px; }
+.eligible-no  { background: rgba(255,0,168,0.06); border: 1px solid rgba(255,0,168,0.2); border-radius: var(--radius); padding: 14px 18px; }
+
+/* ─── TOTAL DISPLAY ───────────────────── */
+.total-display {
+  font-family: var(--font-display);
+  font-size: 38px; font-weight: 800;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-violet), var(--neon-pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; line-height: 1;
+  letter-spacing: 0.03em;
+  filter: drop-shadow(0 0 15px rgba(0,245,255,0.4));
+}
+
+/* ─── TOAST ───────────────────────────── */
+#toast {
+  position: fixed; bottom: 26px; right: 26px; z-index: 9999;
+  background: linear-gradient(145deg, rgba(8,15,24,0.97), rgba(5,11,18,0.99));
+  border: 1px solid rgba(0,245,255,0.2);
+  border-radius: 12px; padding: 14px 20px;
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 30px rgba(0,245,255,0.1);
+  transform: translateY(120px); opacity: 0;
+  transition: all 0.4s var(--ease-snap);
+  min-width: 260px; max-width: 360px;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+#toastTitle { font-weight: 700; font-size: 13px; color: var(--text-bright); font-family: var(--font-display); }
+#toastMessage { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+/* ─── ANIMATIONS ──────────────────────── */
+.fade-in { animation: fadeUp 0.45s var(--ease-snap) both; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+
+/* ─── UTILITIES ───────────────────────── */
+.mono { font-family: var(--font-mono); }
+.hidden { display: none !important; }
+.w-full { width: 100%; }
+.flex { display: flex; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
+.gap-4 { gap: 16px; }
+.flex-wrap { flex-wrap: wrap; }
+
+/* ─── SCROLLBAR ───────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,245,255,0.15); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,245,255,0.35); }
+
+/* ─── NEON PULSE ──────────────────────── */
+.neon-box-cyan {
+  box-shadow: 0 0 10px rgba(0,245,255,0.15), 0 0 30px rgba(0,245,255,0.05);
+  border: 1px solid rgba(0,245,255,0.2);
+}
+.neon-box-violet {
+  box-shadow: 0 0 10px rgba(191,0,255,0.15), 0 0 30px rgba(191,0,255,0.05);
+  border: 1px solid rgba(191,0,255,0.2);
+}
+
+/* Corner decorations */
+.corner-deco {
+  position: relative;
+}
+.corner-deco::before,
+.corner-deco::after {
+  content: '';
+  position: absolute;
+  width: 12px; height: 12px;
+}
+.corner-deco::before {
+  top: 0; left: 0;
+  border-top: 2px solid var(--neon-cyan);
+  border-left: 2px solid var(--neon-cyan);
+  box-shadow: -2px -2px 8px rgba(0,245,255,0.3);
+}
+.corner-deco::after {
+  bottom: 0; right: 0;
+  border-bottom: 2px solid var(--neon-violet);
+  border-right: 2px solid var(--neon-violet);
+  box-shadow: 2px 2px 8px rgba(191,0,255,0.3);
+}
+
+@media print {
+  .no-print, nav { display: none !important; }
+  body { background: white !important; color: black !important; }
+  .bg-canvas, .bg-grid { display: none; }
+}
+
+/* ─── CUSTOM DATE PICKER ──────────────── */
+.neon-date-wrap {
+  position: relative;
+}
+.neon-date-btn {
+  width: 100%;
+  background: rgba(5,11,18,0.8);
+  border: 1px solid rgba(0,245,255,0.08);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-family: var(--font-mono); font-size: 12px;
+  color: var(--text-mid);
+  outline: none; cursor: pointer;
+  transition: all 0.25s var(--ease-snap);
+  text-align: left;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.neon-date-btn:hover {
+  border-color: rgba(0,245,255,0.3);
+  background: rgba(0,245,255,0.04);
+  color: var(--neon-cyan);
+  box-shadow: 0 0 12px rgba(0,245,255,0.08);
+}
+.neon-date-btn.has-value { color: var(--neon-cyan); border-color: rgba(0,245,255,0.2); }
+.neon-date-btn svg { flex-shrink: 0; opacity: 0.5; transition: opacity 0.2s; }
+.neon-date-btn:hover svg { opacity: 1; }
+
+.neon-cal {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 9990;
+  background: rgba(8,15,24,0.98);
+  border: 1px solid rgba(0,245,255,0.2);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(0,245,255,0.08);
+  min-width: 260px;
+  display: none;
+  backdrop-filter: blur(20px);
+  animation: calPop 0.2s var(--ease-snap);
+}
+.neon-cal.open { display: block; }
+.neon-cal::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-violet), transparent);
+}
+@keyframes calPop {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.cal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.cal-nav-btn {
+  width: 28px; height: 28px; border-radius: 6px;
+  background: rgba(0,245,255,0.06); border: 1px solid rgba(0,245,255,0.12);
+  color: var(--neon-cyan); cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.cal-nav-btn:hover {
+  background: rgba(0,245,255,0.14);
+  box-shadow: 0 0 12px rgba(0,245,255,0.2);
+}
+.cal-month-year {
+  font-family: var(--font-display); font-size: 12px; font-weight: 700;
+  color: var(--text-bright); letter-spacing: 0.08em; text-transform: uppercase;
+  cursor: pointer; user-select: none;
+  transition: color 0.2s;
+}
+.cal-month-year:hover { color: var(--neon-cyan); text-shadow: 0 0 10px rgba(0,245,255,0.5); }
+
+.cal-days-header {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 6px;
+}
+.cal-day-name {
+  text-align: center; padding: 4px 0;
+  font-family: var(--font-display); font-size: 8px; font-weight: 700;
+  color: var(--text-dim); letter-spacing: 0.08em; text-transform: uppercase;
+}
+
+.cal-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+}
+.cal-day {
+  aspect-ratio: 1; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  color: var(--text-mid); cursor: pointer;
+  transition: all 0.15s;
+  border: 1px solid transparent;
+  position: relative;
+}
+.cal-day:hover:not(.empty):not(.selected) {
+  background: rgba(0,245,255,0.08);
+  border-color: rgba(0,245,255,0.2);
+  color: var(--neon-cyan);
+}
+.cal-day.today:not(.selected) {
+  color: var(--neon-cyan);
+  border-color: rgba(0,245,255,0.25);
+}
+.cal-day.today::after {
+  content: '';
+  position: absolute; bottom: 2px;
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 6px var(--neon-cyan);
+}
+.cal-day.selected {
+  background: linear-gradient(135deg, rgba(0,245,255,0.2), rgba(191,0,255,0.15));
+  border-color: rgba(0,245,255,0.4);
+  color: var(--neon-cyan);
+  font-weight: 700;
+  box-shadow: 0 0 12px rgba(0,245,255,0.2), inset 0 1px 0 rgba(0,245,255,0.1);
+  text-shadow: 0 0 8px rgba(0,245,255,0.6);
+}
+.cal-day.empty { cursor: default; }
+.cal-day.other-month { color: var(--text-ghost); }
+
+.cal-footer {
+  margin-top: 12px; padding-top: 12px;
+  border-top: 1px solid rgba(0,245,255,0.06);
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+}
+.cal-today-btn {
+  font-family: var(--font-display); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--neon-cyan); background: rgba(0,245,255,0.06);
+  border: 1px solid rgba(0,245,255,0.15); border-radius: var(--radius-sm);
+  padding: 5px 10px; cursor: pointer; transition: all 0.2s;
+}
+.cal-today-btn:hover { background: rgba(0,245,255,0.14); box-shadow: 0 0 10px rgba(0,245,255,0.15); }
+.cal-clear-btn {
+  font-family: var(--font-display); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--neon-pink); background: rgba(255,0,168,0.05);
+  border: 1px solid rgba(255,0,168,0.15); border-radius: var(--radius-sm);
+  padding: 5px 10px; cursor: pointer; transition: all 0.2s;
+}
+.cal-clear-btn:hover { background: rgba(255,0,168,0.12); }
+.cal-selected-label {
+  font-family: var(--font-mono); font-size: 10px; color: var(--text-dim);
+}
+
+/* Year/month picker overlay */
+.cal-ym-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;
+  margin-top: 8px;
+}
+.cal-ym-item {
+  padding: 7px 4px; border-radius: 6px; text-align: center;
+  font-family: var(--font-display); font-size: 10px; font-weight: 600;
+  color: var(--text-mid); cursor: pointer; border: 1px solid transparent;
+  transition: all 0.15s; letter-spacing: 0.04em;
+}
+.cal-ym-item:hover { background: rgba(0,245,255,0.08); border-color: rgba(0,245,255,0.2); color: var(--neon-cyan); }
+.cal-ym-item.active { background: rgba(0,245,255,0.15); border-color: rgba(0,245,255,0.35); color: var(--neon-cyan); box-shadow: 0 0 10px rgba(0,245,255,0.15); }
+</style>
+</head>
+<body>
+
+<!-- BG Layers -->
+<div class="bg-canvas">
+  <div class="bg-halo halo-1"></div>
+  <div class="bg-halo halo-2"></div>
+  <div class="bg-halo halo-3"></div>
+</div>
+<div class="bg-grid"></div>
+
+<div class="shell">
+
+  <!-- HEADER -->
+  <header class="header corner-deco fade-in">
+    <div style="display:flex; align-items:center; gap:16px;">
+      <div class="brand-logo">⚡</div>
+      <div>
+        <div class="brand-title"><span>WATITOTO</span> WINLOSS</div>
+        <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+          <span class="badge badge-lime">NEON EDITION</span>
+          <span class="badge badge-violet">AUTO-SAVE</span>
+          <span style="font-size:10px; color:var(--text-dim); letter-spacing:0.06em; font-family:var(--font-display);">· SLOT BONUS PRO</span>
+        </div>
+      </div>
+    </div>
+    <div class="flex gap-2 flex-wrap no-print">
+      <button onclick="exportData()" class="btn btn-ghost" style="font-size:10px; padding:8px 14px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+        BACKUP
+      </button>
+      <label class="btn btn-ghost" style="font-size:10px; padding:8px 14px; cursor:pointer;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+        RESTORE
+        <input type="file" id="importFile" style="display:none;" accept=".json" onchange="importData(this)">
+      </label>
+      <button onclick="clearAllData()" class="btn btn-danger" style="font-size:10px; padding:8px 14px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+        RESET
+      </button>
+    </div>
+  </header>
+
+  <!-- NAVIGATION -->
+  <nav class="nav-wrap no-print fade-in stagger-1">
+    <button id="dashboardTab" class="nav-tab" onclick="switchTab('dashboard')">
+      <div class="tab-dot" style="background:var(--neon-cyan)"></div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+      DASHBOARD
+    </button>
+    <button id="winlossTab" class="nav-tab active" onclick="switchTab('winloss')">
+      <div class="tab-dot" style="background:var(--neon-cyan)"></div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      WIN/LOSS INPUT
+    </button>
+    <button id="bonusTab" class="nav-tab" onclick="switchTab('bonus')">
+      <div class="tab-dot" style="background:var(--neon-lime)"></div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      KALKULATOR BONUS
+    </button>
+    <button id="slotBonusTab" class="nav-tab active-slot" onclick="switchTab('slotBonus')">
+      <div class="tab-dot" style="background:var(--neon-violet)"></div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
+      BONUS SLOT
+      <span class="badge badge-violet" style="font-size:8px; padding:2px 6px;">HOT</span>
+    </button>
+  </nav>
+
+  <!-- ════════ DASHBOARD ════════ -->
+  <main id="dashboardContent" class="hidden fade-in" style="display:none;">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin-bottom:16px;">
+      <div class="stat-card cyan stagger-1 fade-in">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <p class="stat-label">Total Turnover</p>
+            <p id="dashTurnover" class="stat-value neon-cyan">0</p>
+          </div>
+          <div class="stat-icon cyan">📈</div>
+        </div>
+      </div>
+      <div class="stat-card pink stagger-2 fade-in">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <p class="stat-label">Total Loss</p>
+            <p id="dashLoss" class="stat-value neon-pink">0</p>
+          </div>
+          <div class="stat-icon pink">📉</div>
+        </div>
+      </div>
+      <div class="stat-card lime stagger-3 fade-in">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <p class="stat-label">Bonus Distributed</p>
+            <p id="dashBonus" class="stat-value neon-lime">0</p>
+          </div>
+          <div class="stat-icon lime">💰</div>
+        </div>
+      </div>
+      <div class="stat-card violet stagger-4 fade-in">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <p class="stat-label">Slot Sessions</p>
+            <p id="dashSlotSessions" class="stat-value neon-violet">0</p>
+          </div>
+          <div class="stat-icon violet">🎰</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+      <div class="panel-neon" style="padding:22px;">
+        <h3 style="font-family:var(--font-display); font-size:13px; font-weight:700; color:var(--text-bright); margin-bottom:16px; letter-spacing:0.06em; text-transform:uppercase;">Distribusi Kategori</h3>
+        <div style="height:200px; display:flex; justify-content:center;"><canvas id="categoryChart"></canvas></div>
+      </div>
+      <div class="panel-neon" style="padding:22px;">
+        <h3 style="font-family:var(--font-display); font-size:13px; font-weight:700; color:var(--text-bright); margin-bottom:16px; letter-spacing:0.06em; text-transform:uppercase;">Riwayat Bonus</h3>
+        <div style="height:200px;"><canvas id="bonusChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="panel" style="overflow:hidden;">
+      <div style="padding:13px 18px; border-bottom:1px solid rgba(0,245,255,0.06); background:rgba(0,245,255,0.02);">
+        <h3 style="font-family:var(--font-display); font-size:13px; font-weight:700; color:var(--text-bright); text-transform:uppercase; letter-spacing:0.08em;">⚡ Aktivitas Terakhir</h3>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>Waktu</th><th>Tipe</th><th>Detail</th><th style="text-align:right;">Jumlah</th></tr></thead>
+        <tbody id="activityLogTable"><tr><td colspan="4" style="text-align:center; color:var(--text-dim); padding:26px; font-size:12px;">Belum ada aktivitas</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- ════════ WINLOSS INPUT ════════ -->
+  <main id="winlossContent" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;" class="fade-in">
+    <section>
+      <div class="panel-neon corner-deco" style="overflow:hidden;">
+        <div class="section-head">
+          <div class="section-title">
+            <div class="section-icon">📋</div>
+            INPUT DATA WINLOSS
+          </div>
+          <span class="badge badge-cyan">SMART PARSER</span>
+        </div>
+        <div style="padding:20px; display:flex; flex-direction:column; gap:14px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div>
+              <label class="inp-label">Kategori</label>
+              <select id="categorySelect" class="inp" onchange="handleCategoryChange()">
+                <option value="SLOT">Slot Games</option>
+                <option value="LIVEGAME">Live Games</option>
+                <option value="SPORT">Sportsbook</option>
+              </select>
+            </div>
+            <div>
+              <label class="inp-label">Provider</label>
+              <select id="providerSelect" class="inp"><option value="">Pilih Provider…</option><option value="5G">5G</option><option value="ASK SLOT">ASK SLOT</option><option value="RED TIGER,NOLIMITCITY,NETENT,BIGTIMEGAMING">RED TIGER,NOLIMITCITY,NETENT,BIGTIMEGAMING</option><option value="FatPanda">FatPanda</option><option value="GGSoft">GGSoft</option><option value="HABANERO">HABANERO</option><option value="HACKSAW">HACKSAW</option><option value="JILI SLOT">JILI SLOT</option><option value="JOKER SLOT">JOKER SLOT</option><option value="Liteplay">Liteplay</option><option value="PG">PG</option><option value="Playtech">Playtech</option><option value="Playstar">Playstar</option><option value="PNG SLOT">PNG SLOT</option><option value="PRAGMATIC PLAY SLOT">PRAGMATIC PLAY SLOT</option><option value="WMC">WMC</option><option value="WowGaming">WowGaming</option></select>
+            </div>
+          </div>
+
+          <div>
+            <label class="inp-label">Periode Laporan</label>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+              <div class="neon-date-wrap">
+                <button type="button" class="neon-date-btn" id="startDate_btn" onclick="toggleCal('startDate')">
+                  <span id="startDate_label" style="font-size:12px;">Pilih Tanggal</span>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </button>
+                <div class="neon-cal" id="startDate_cal"></div>
+                <input type="hidden" id="startDate">
+              </div>
+              <div class="neon-date-wrap">
+                <button type="button" class="neon-date-btn" id="endDate_btn" onclick="toggleCal('endDate')">
+                  <span id="endDate_label" style="font-size:12px;">Pilih Tanggal</span>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </button>
+                <div class="neon-cal" id="endDate_cal"></div>
+                <input type="hidden" id="endDate">
+              </div>
+            </div>
+          </div>
+
+          <div style="background:rgba(255,0,168,0.06); border:1px solid rgba(255,0,168,0.15); border-radius:var(--radius); padding:13px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+            <div>
+              <p style="font-size:11px; font-weight:700; color:var(--neon-pink); font-family:var(--font-display); letter-spacing:0.08em;">THRESHOLD LOSS</p>
+              <p style="font-size:10px; color:var(--text-dim); margin-top:2px;">Hanya data di bawah nilai ini</p>
+            </div>
+            <div style="position:relative; width:160px;">
+              <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:10px; color:var(--text-dim); font-family:var(--font-mono);">Rp</span>
+              <input type="number" id="thresholdInput" value="-100000" class="inp mono" style="padding-left:28px; font-size:12px;">
+            </div>
+          </div>
+
+          <div>
+            <label class="inp-label">Paste Data Excel / CSV</label>
+            <div id="dropZone" class="drop-zone">
+              <textarea id="dataInput" placeholder="Paste data di sini… (Tab atau Comma separated)&#10;&#10;Contoh:&#10;UserID    Win    Loss&#10;TEST01    100000    -500000"></textarea>
+            </div>
+          </div>
+
+          <button onclick="processData()" class="btn btn-cyan btn-lg btn-full" style="letter-spacing:0.1em;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            PROSES DATA
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="panel-neon corner-deco" style="overflow:hidden; position:sticky; top:18px;">
+        <div class="section-head">
+          <div class="section-title">
+            <div class="section-icon">📄</div>
+            PREVIEW LAPORAN
+          </div>
+          <div class="flex gap-2">
+            <button onclick="copyToClipboard()" class="btn btn-ghost" style="font-size:10px; padding:6px 12px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+              COPY
+            </button>
+            <button onclick="window.print()" class="btn btn-ghost" style="font-size:10px; padding:6px 12px;">🖨 PRINT</button>
+          </div>
+        </div>
+        <div style="padding:24px; background:var(--void); min-height:360px; max-height:520px; overflow-y:auto;">
+          <div id="reportOutput"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ════════ BONUS CALCULATOR ════════ -->
+  <div id="bonusContent" class="hidden fade-in" style="display:none; grid-template-columns:340px 1fr; gap:16px;">
+    <div>
+      <div class="panel-neon" style="overflow:hidden;">
+        <div class="section-head">
+          <div class="section-title"><div class="section-icon">💎</div>KALKULATOR BONUS</div>
+        </div>
+        <div style="padding:20px; display:flex; flex-direction:column; gap:13px;">
+          <div>
+            <label class="inp-label">User ID</label>
+            <div style="position:relative;">
+              <span style="position:absolute; left:13px; top:50%; transform:translateY(-50%); color:var(--neon-cyan); font-size:13px;">@</span>
+              <input type="text" id="userIdInput" placeholder="member123" class="inp" style="padding-left:30px;">
+            </div>
+          </div>
+          <div>
+            <label class="inp-label">Periode Bonus</label>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+              <div class="neon-date-wrap">
+                <button type="button" class="neon-date-btn" id="bonusStartDate_btn" onclick="toggleCal('bonusStartDate')">
+                  <span id="bonusStartDate_label" style="font-size:11px;">Pilih Tanggal</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </button>
+                <div class="neon-cal" id="bonusStartDate_cal"></div>
+                <input type="hidden" id="bonusStartDate">
+              </div>
+              <div class="neon-date-wrap">
+                <button type="button" class="neon-date-btn" id="bonusEndDate_btn" onclick="toggleCal('bonusEndDate')">
+                  <span id="bonusEndDate_label" style="font-size:11px;">Pilih Tanggal</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </button>
+                <div class="neon-cal" id="bonusEndDate_cal"></div>
+                <input type="hidden" id="bonusEndDate">
+              </div>
+            </div>
+          </div>
+          <button onclick="importFromWinloss()" style="width:100%; padding:10px; background:rgba(0,245,255,0.06); border:1px solid rgba(0,245,255,0.15); border-radius:var(--radius); color:var(--neon-cyan); font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:all 0.25s; font-family:var(--font-display); letter-spacing:0.08em; text-transform:uppercase;">
+            ⬇ IMPORT DARI WINLOSS TAB
+          </button>
+          <div class="divider divider-neon"></div>
+          <div>
+            <p style="font-size:9px; font-weight:700; color:var(--neon-cyan); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:7px; font-family:var(--font-display);">Livegame / Sport · Rate 2.5%–5%</p>
+            <input type="number" id="livegameLoss" placeholder="0" class="inp mono" style="font-size:13px;">
+          </div>
+          <div>
+            <p style="font-size:9px; font-weight:700; color:var(--neon-violet); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:7px; font-family:var(--font-display);">Slot · Rate 5% Flat</p>
+            <input type="number" id="slotLoss" placeholder="0" class="inp mono" style="font-size:13px;">
+          </div>
+          <button onclick="calculateBonus()" class="btn btn-lime btn-lg btn-full" style="margin-top:4px;">⚡ HITUNG BONUS</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:14px;">
+      <div class="panel neon-box-cyan" style="padding:26px; min-height:200px; display:flex; flex-direction:column; justify-content:center; align-items:center;" id="bonusResultCard">
+        <div id="bonusOutput" style="width:100%; text-align:center; color:var(--text-dim); font-size:13px;"><p>Hasil perhitungan bonus akan muncul di sini</p></div>
+      </div>
+      <div class="panel" style="overflow:hidden;">
+        <div style="padding:13px 18px; border-bottom:1px solid rgba(0,245,255,0.06); display:flex; justify-content:space-between; align-items:center;">
+          <h3 style="font-family:var(--font-display); font-size:13px; font-weight:700; color:var(--text-bright); text-transform:uppercase; letter-spacing:0.08em;">Riwayat Bonus</h3>
+          <span id="bonusCountBadge" class="badge badge-cyan">0 Data</span>
+        </div>
+        <div style="overflow-x:auto; max-height:360px; overflow-y:auto;">
+          <table class="data-table">
+            <thead><tr><th>User ID</th><th>Tgl</th><th style="text-align:right;">Loss</th><th style="text-align:right;">Bonus</th><th style="text-align:center;">Aksi</th></tr></thead>
+            <tbody id="bonusHistoryTable"><tr><td colspan="5" style="text-align:center; color:var(--text-dim); padding:26px; font-size:12px;">Belum ada riwayat</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ SLOT BONUS MODULE ════════ -->
+  <div id="slotBonusContent" class="hidden fade-in" style="display:none;">
+
+    <!-- Module header -->
+    <div class="panel-neon" style="padding:20px 26px; margin-bottom:18px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:14px; position:relative; overflow:hidden;">
+      <div style="position:absolute; top:-50px; right:-50px; width:180px; height:180px; background:radial-gradient(circle, rgba(191,0,255,0.12) 0%, transparent 70%); pointer-events:none; filter:blur(30px);"></div>
+      <div style="display:flex; align-items:center; gap:16px;">
+        <div style="width:52px; height:52px; background:linear-gradient(145deg, rgba(191,0,255,0.2), rgba(0,245,255,0.1)); border:1px solid rgba(191,0,255,0.3); border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 0 25px rgba(191,0,255,0.25), 0 0 50px rgba(191,0,255,0.1);">🎰</div>
+        <div>
+          <h2 style="font-family:var(--font-display); font-size:20px; font-weight:900; color:var(--text-bright); letter-spacing:0.08em; text-transform:uppercase; text-shadow:0 0 20px rgba(191,0,255,0.4);">Perhitungan Bonus Slot</h2>
+          <p style="font-size:10px; color:var(--neon-violet); margin-top:5px; letter-spacing:0.06em; font-family:var(--font-display);">PROVIDER GROUP LOGIC · ANTI DOUBLE-COUNT · AUTO RANKING</p>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <span class="badge badge-violet">Group System</span>
+        <span class="badge badge-lime">Anti Double-Count</span>
+        <span class="badge badge-cyan">Auto Rank</span>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:310px 1fr; gap:16px; align-items:start;">
+      <!-- Left -->
+      <div style="display:flex; flex-direction:column; gap:13px;">
+
+        <div class="panel-neon" style="overflow:hidden;">
+          <div class="section-head" style="padding:13px 18px;">
+            <div class="section-title" style="font-size:12px;"><div class="section-icon" style="width:26px; height:26px; font-size:12px;">⚙</div>KONFIGURASI SESI</div>
+          </div>
+          <div style="padding:16px; display:flex; flex-direction:column; gap:12px;">
+            <div>
+              <label class="inp-label">User ID</label>
+              <div style="position:relative;">
+                <span style="position:absolute; left:13px; top:50%; transform:translateY(-50%); color:var(--neon-cyan);">@</span>
+                <input type="text" id="sbUserId" placeholder="member123" class="inp" style="padding-left:30px;">
+              </div>
+            </div>
+            <div>
+              <label class="inp-label">Periode</label>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <div class="neon-date-wrap">
+                  <button type="button" class="neon-date-btn" id="sbStartDate_btn" onclick="toggleCal('sbStartDate')" style="padding:8px 10px;">
+                    <span id="sbStartDate_label" style="font-size:10px;">Pilih Tgl</span>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  </button>
+                  <div class="neon-cal" id="sbStartDate_cal"></div>
+                  <input type="hidden" id="sbStartDate">
+                </div>
+                <div class="neon-date-wrap">
+                  <button type="button" class="neon-date-btn" id="sbEndDate_btn" onclick="toggleCal('sbEndDate')" style="padding:8px 10px;">
+                    <span id="sbEndDate_label" style="font-size:10px;">Pilih Tgl</span>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  </button>
+                  <div class="neon-cal" id="sbEndDate_cal"></div>
+                  <input type="hidden" id="sbEndDate">
+                </div>
+              </div>
+            </div>
+            <div>
+              <label class="inp-label">Filter Cepat</label>
+              <select id="sbPeriodFilter" class="inp" style="font-size:12px;" onchange="applySbPeriodFilter()">
+                <option value="custom">Custom</option>
+                <option value="today">Hari Ini</option>
+                <option value="week">Minggu Ini</option>
+                <option value="month">Bulan Ini</option>
+              </select>
+            </div>
+            <div>
+              <label class="inp-label">Min. Turnover Eligible</label>
+              <div style="position:relative;">
+                <span style="position:absolute; left:13px; top:50%; transform:translateY(-50%); font-size:10px; color:var(--text-dim); font-family:var(--font-mono);">Rp</span>
+                <input type="number" id="sbMinTurnover" value="1000000" class="inp mono" style="padding-left:30px; font-size:12px;">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-neon" style="overflow:hidden;">
+          <div class="section-head" style="padding:13px 18px;">
+            <div class="section-title" style="font-size:12px;"><div class="section-icon" style="width:26px; height:26px; font-family:var(--font-mono); font-weight:700; font-size:12px;">%</div>SETTING PERSENTASE</div>
+            <span class="badge badge-yellow" style="font-size:8px;">ADMIN</span>
+          </div>
+          <div style="padding:16px; display:flex; flex-direction:column; gap:13px;">
+            <div>
+              <div style="display:flex; justify-content:space-between; margin-bottom:7px;">
+                <label style="font-size:9px; font-weight:700; color:var(--neon-violet); text-transform:uppercase; letter-spacing:0.1em; font-family:var(--font-display);">Gold Group</label>
+                <span id="sbGroupPctDisplay" class="mono neon-violet" style="font-size:13px; font-weight:600;">5%</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <input type="range" id="sbGroupPct" min="0" max="20" step="0.5" value="5" oninput="updateSbPctDisplays()" style="flex:1; accent-color:var(--neon-violet); height:3px; cursor:pointer;">
+                <input type="number" id="sbGroupPctNum" value="5" min="0" max="20" step="0.5" oninput="syncSbPct('group')" class="inp mono" style="width:58px; padding:6px 10px; font-size:12px;">
+              </div>
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; margin-bottom:7px;">
+                <label style="font-size:9px; font-weight:700; color:var(--neon-cyan); text-transform:uppercase; letter-spacing:0.1em; font-family:var(--font-display);">Provider Normal</label>
+                <span id="sbNormalPctDisplay" class="mono neon-cyan" style="font-size:13px; font-weight:600;">5%</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <input type="range" id="sbNormalPct" min="0" max="20" step="0.5" value="5" oninput="updateSbPctDisplays()" style="flex:1; accent-color:var(--neon-cyan); height:3px; cursor:pointer;">
+                <input type="number" id="sbNormalPctNum" value="5" min="0" max="20" step="0.5" oninput="syncSbPct('normal')" class="inp mono" style="width:58px; padding:6px 10px; font-size:12px;">
+              </div>
+            </div>
+            <div style="background:rgba(191,0,255,0.06); border:1px solid rgba(191,0,255,0.15); border-radius:var(--radius); padding:10px 13px; font-size:10px; color:var(--neon-violet); line-height:1.6; font-family:var(--font-display); letter-spacing:0.04em;">
+              ⚡ GOLD GROUP = <strong style="color:var(--text-bright);">1× BONUS SAJA</strong> — anti double count
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" style="padding:16px; border:1px solid rgba(191,0,255,0.15); box-shadow:0 0 20px rgba(191,0,255,0.06);">
+          <h4 style="font-size:9px; font-weight:700; color:var(--neon-violet); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px; font-family:var(--font-display); display:flex; align-items:center; gap:6px;">⭐ GOLD GROUP PROVIDERS</h4>
+          <div id="sbGroupProviderList"></div>
+          <div class="divider divider-neon"></div>
+          <p style="font-size:10px; color:var(--text-dim); line-height:1.6;">Semua provider di atas dihitung sebagai <em style="color:var(--neon-violet);">satu unit bonus</em>. Turnover digabung, 1× bonus saja.</p>
+        </div>
+      </div>
+
+      <!-- Right -->
+      <div style="display:flex; flex-direction:column; gap:13px;">
+
+        <div class="panel-neon" style="overflow:hidden;">
+          <div class="section-head">
+            <div class="section-title" style="font-size:12px;">🎮 INPUT TURNOVER PER PROVIDER</div>
+            <button onclick="resetSbInputs()" class="btn btn-ghost" style="font-size:10px; padding:6px 12px;">↺ RESET</button>
+          </div>
+          <div style="padding:18px;">
+            <!-- Gold group -->
+            <div style="margin-bottom:16px;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:11px;">
+                <div style="width:7px; height:7px; border-radius:50%; background:var(--neon-violet); box-shadow:0 0 8px var(--neon-violet);"></div>
+                <span style="font-size:9px; font-weight:700; color:var(--neon-violet); text-transform:uppercase; letter-spacing:0.1em; font-family:var(--font-display);">Gold Group Providers</span>
+                <span class="badge badge-violet" style="font-size:8px;">1× BONUS</span>
+              </div>
+              <div id="sbGroupInputs"></div>
+            </div>
+
+            <div class="divider divider-neon"></div>
+
+            <!-- Normal -->
+            <div>
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:11px;">
+                <div style="width:7px; height:7px; border-radius:50%; background:var(--neon-cyan);"></div>
+                <span style="font-size:9px; font-weight:700; color:var(--neon-cyan); text-transform:uppercase; letter-spacing:0.1em; font-family:var(--font-display);">Provider Normal</span>
+                <span class="badge badge-cyan" style="font-size:8px;">INDIVIDUAL</span>
+              </div>
+              <div id="sbNormalInputs"></div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:18px;">
+              <button onclick="calculateSlotBonus()" class="btn btn-lime btn-lg" style="flex:1; justify-content:center; letter-spacing:0.08em;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                HITUNG BONUS SLOT
+              </button>
+              <button onclick="generateSlotReport()" class="btn btn-ghost" style="padding:13px 14px;" title="Generate Report">📄</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Result -->
+        <div id="sbResultPanel" class="panel-neon" style="overflow:hidden; display:none;">
+          <div class="section-head">
+            <div class="section-title" style="font-size:12px;">📊 HASIL PERHITUNGAN</div>
+            <button onclick="exportSlotBonusPDF()" class="btn btn-ghost" style="font-size:10px; padding:6px 12px;">📥 EXPORT PDF</button>
+          </div>
+          <div id="sbResultContent" style="padding:20px;"></div>
+        </div>
+
+        <!-- Report text -->
+        <div id="sbReportPanel" class="panel" style="overflow:hidden; display:none; border:1px solid rgba(0,245,255,0.1);">
+          <div style="padding:13px 18px; border-bottom:1px solid rgba(0,245,255,0.06); display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="font-family:var(--font-display); font-size:12px; font-weight:700; color:var(--text-bright); text-transform:uppercase; letter-spacing:0.08em;">GENERATE REPORT</h3>
+            <button onclick="copySbReport()" class="btn btn-ghost" style="font-size:10px; padding:5px 11px;">📋 COPY</button>
+          </div>
+          <div style="padding:16px; background:var(--void);">
+            <textarea id="sbReportOutput" readonly class="mono" style="width:100%; height:190px; background:transparent; color:var(--neon-cyan); font-size:11px; line-height:1.9; resize:none; outline:none; border:none; text-shadow:0 0 6px rgba(0,245,255,0.3);"></textarea>
+          </div>
+        </div>
+
+        <!-- History -->
+        <div class="panel" style="overflow:hidden;">
+          <div style="padding:13px 18px; border-bottom:1px solid rgba(0,245,255,0.06); display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="font-family:var(--font-display); font-size:13px; font-weight:700; color:var(--text-bright); text-transform:uppercase; letter-spacing:0.06em;">Riwayat Slot</h3>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <span id="sbHistoryCountBadge" class="badge badge-violet">0 Session</span>
+              <button onclick="clearSbHistory()" class="btn btn-danger" style="font-size:10px; padding:5px 10px;">HAPUS</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto; max-height:280px; overflow-y:auto;">
+            <table class="data-table">
+              <thead><tr><th>User</th><th>Tgl</th><th style="text-align:right;">Turnover</th><th style="text-align:right;">Group</th><th style="text-align:right;">Normal</th><th style="text-align:right;">Total</th><th>Status</th><th style="text-align:center;">Aksi</th></tr></thead>
+              <tbody id="sbHistoryTable"><tr><td colspan="8" style="text-align:center; color:var(--text-dim); padding:26px; font-size:12px;">Belum ada riwayat</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Ranking -->
+        <div class="panel" style="overflow:hidden;">
+          <div style="padding:13px 18px; border-bottom:1px solid rgba(0,245,255,0.06);">
+            <h3 style="font-family:var(--font-display); font-size:13px; font-weight:700; color:var(--text-bright); text-transform:uppercase; letter-spacing:0.06em;">🏆 AUTO RANKING PROVIDER</h3>
+          </div>
+          <div id="sbRankingContent" style="padding:18px;">
+            <p style="color:var(--text-dim); font-size:12px; text-align:center;">Hitung bonus untuk melihat ranking</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast">
+  <div id="toastIcon"></div>
+  <div>
+    <div id="toastTitle"></div>
+    <div id="toastMessage"></div>
+  </div>
+</div>
+
+<script>
+const PROVIDERS = {
+    SLOT: ["5G", "ASK SLOT", "RED TIGER,NOLIMITCITY,NETENT,BIGTIMEGAMING", "FatPanda", "GGSoft", "HABANERO", "HACKSAW", "JILI SLOT", "JOKER SLOT", "Liteplay", "PG", "Playtech", "Playstar", "PNG SLOT", "PRAGMATIC PLAY SLOT", "WMC", "WowGaming"],
+    LIVEGAME: ["BG", "Empire Gaming", "EVOLUTION", "Jmarble", "PNG LIVE", "PRAGMATIC PLAY LIVE", "RGCASINO", "SA GAMING", "SEXYGAMING", "TGION", "EEAI"],
+    SPORT: ["AP", "CMD368 SPORTS", "SBO", "TF", "XJ"]
+};
+
+let state = { winlossData: {}, bonusHistory: [], activityLog: [], slotBonusHistory: [], lastUpdated: null };
+let charts = { category: null, bonus: null };
+
+const SB_PROVIDER_GROUPS = {
+    "GOLD_GROUP": { label: "Gold Group", color: "#BF00FF", providers: ["RED TIGER", "NOLIMITCITY", "NETENT", "BIGTIMEGAMING"] }
+};
+const SB_ALL_GROUPS_FLAT = Object.values(SB_PROVIDER_GROUPS).flatMap(g => g.providers);
+const SB_NORMAL_PROVIDERS = PROVIDERS.SLOT.filter(p => !SB_ALL_GROUPS_FLAT.includes(p));
+let lastSbResult = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadData(); initCharts(); setupDragDrop(); handleCategoryChange();
+    const today = new Date().toISOString().split('T')[0];
+    // Set today on all hidden date fields and update button labels
+    ['startDate','endDate','bonusStartDate','bonusEndDate','sbStartDate','sbEndDate'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.value = today;
+            const lbl = document.getElementById(id + '_label');
+            const btn = document.getElementById(id + '_btn');
+            if (lbl) { lbl.textContent = formatDateDisplay(today); }
+            if (btn) { btn.classList.add('has-value'); }
+            if (!CAL_STATE[id]) initCal(id);
+        }
+    });
+    buildSbProviderInputs(); renderSbGroupProviderList(); updateSbPctDisplays(); updateUI();
+    document.getElementById('dashboardContent').style.display = 'none';
+    document.getElementById('bonusContent').style.display = 'none';
+    document.getElementById('slotBonusContent').style.display = 'none';
+    document.getElementById('winlossContent').style.display = 'grid';
+});
+
+function saveData() {
+    state.lastUpdated = new Date().toISOString();
+    localStorage.setItem('watitotoData_v1', JSON.stringify(state));
+}
+function loadData() {
+    const saved = localStorage.getItem('watitotoData_v1') || localStorage.getItem('winlossCalcProData_v5');
+    if (saved) { try { const p = JSON.parse(saved); state = {...state,...p}; if (!state.slotBonusHistory) state.slotBonusHistory = []; } catch(e) {} }
+}
+
+function switchTab(tabId) {
+    const tabs = ['dashboard','winloss','bonus','slotBonus'];
+    tabs.forEach(t => {
+        const el = document.getElementById(t+'Content');
+        const btn = document.getElementById(t+'Tab');
+        if (!el || !btn) return;
+        if (t === tabId) {
+            el.style.display = t === 'winloss' ? 'grid' : t === 'bonus' ? 'grid' : '';
+            el.classList.remove('hidden');
+            btn.classList.add(t === 'slotBonus' ? 'active-slot' : 'active');
+        } else {
+            el.style.display = 'none'; el.classList.add('hidden');
+            btn.classList.remove('active','active-slot');
+        }
+    });
+    if (tabId === 'dashboard') updateCharts();
+}
+
+function handleCategoryChange() {
+    const cat = document.getElementById('categorySelect').value;
+    const prov = document.getElementById('providerSelect');
+    prov.innerHTML = '<option value="">Pilih Provider…</option>';
+    (PROVIDERS[cat]||[]).forEach(p => { const opt=document.createElement('option'); opt.value=p; opt.text=p; prov.appendChild(opt); });
+}
+
+function handleDateChange() {
+    const s=document.getElementById('startDate'), e=document.getElementById('endDate');
+    if (s.value && e.value && s.value > e.value) { e.value=s.value; showToast('Info','Tanggal akhir disesuaikan','info'); }
+    updateReportPreview();
+}
+
+function processData() {
+    const cat=document.getElementById('categorySelect').value;
+    const prov=document.getElementById('providerSelect').value;
+    const threshold=parseFloat(document.getElementById('thresholdInput').value)||0;
+    const raw=document.getElementById('dataInput').value;
+    if (!prov) return showToast('Error','Pilih Kategori & Provider','error');
+    if (!raw.trim()) return showToast('Error','Data Excel kosong','error');
+    const sep=raw.includes('\t')?'\t':',';
+    const rows=raw.split(/\r?\n/); let totalLoss=0, rowCount=0;
+    rows.forEach(row => { const cols=row.split(sep); if (cols.length>2) { const val=parseFloat(cols[2].replace(/[^0-9.-]/g,'')); if (!isNaN(val) && val<=threshold) { totalLoss+=val; rowCount++; } } });
+    if (rowCount===0) return showToast('Info',`Tidak ada data ≤ ${threshold}`,'info');
+    if (!state.winlossData[cat]) state.winlossData[cat]={};
+    state.winlossData[cat][prov]=(state.winlossData[cat][prov]||0)+totalLoss;
+    logActivity('WINLOSS',`${cat} — ${prov}`,totalLoss);
+    saveData(); updateUI(); document.getElementById('dataInput').value='';
+    showToast('Sukses ⚡',`${rowCount} data diproses · Total: ${fc(totalLoss)}`);
+}
+
+function calculateBonus() {
+    const userId=document.getElementById('userIdInput').value;
+    if (!userId) return showToast('Error','Masukkan User ID','error');
+    const liveLoss=parseFloat(document.getElementById('livegameLoss').value)||0;
+    const slotLoss=parseFloat(document.getElementById('slotLoss').value)||0;
+    let liveBonus=0;
+    if (liveLoss>=100000 && liveLoss<=250000000) liveBonus=liveLoss*0.025;
+    else if (liveLoss>250000000) liveBonus=liveLoss*0.05;
+    const slotBonus=slotLoss*0.05, totalBonus=liveBonus+slotBonus;
+    const record={id:Date.now(),userId,date:document.getElementById('bonusStartDate').value,liveLoss,slotLoss,liveBonus,slotBonus,totalBonus};
+    state.bonusHistory.push(record); logActivity('BONUS',`User: ${userId}`,totalBonus);
+    saveData(); updateUI(); showToast('Berhasil ✓',`Bonus ${fc(totalBonus)} dihitung`);
+}
+
+function importFromWinloss() {
+    let totalLive=0, totalSlot=0;
+    if (state.winlossData['LIVEGAME']) Object.values(state.winlossData['LIVEGAME']).forEach(v => totalLive+=Math.abs(v));
+    if (state.winlossData['SPORT']) Object.values(state.winlossData['SPORT']).forEach(v => totalLive+=Math.abs(v));
+    if (state.winlossData['SLOT']) Object.values(state.winlossData['SLOT']).forEach(v => totalSlot+=Math.abs(v));
+    document.getElementById('livegameLoss').value=totalLive;
+    document.getElementById('slotLoss').value=totalSlot;
+    showToast('Import ⚡','Data Winloss berhasil diambil');
+}
+
+function updateUI() { updateReportPreview(); updateBonusHistory(); updateDashboardStats(); updateActivityLog(); updateSbHistory(); }
+
+function updateReportPreview() {
+    const output=document.getElementById('reportOutput');
+    const s=document.getElementById('startDate').value, e=document.getElementById('endDate').value;
+    const fDate=(ds) => { if (!ds) return ''; const d=new Date(ds); return `${d.getDate()} ${d.toLocaleDateString('id-ID',{month:'short'})}`; };
+    const toBold=(str)=>str.split('').map(c=>{
+        if(c>='A'&&c<='Z') return String.fromCodePoint(0x1D400+c.charCodeAt(0)-65);
+        if(c>='a'&&c<='z') return String.fromCodePoint(0x1D41A+c.charCodeAt(0)-97);
+        if(c>='0'&&c<='9') return String.fromCodePoint(0x1D7CE+c.charCodeAt(0)-48);
+        return c;
+    }).join('');
+    let text=`${toBold("Bonus Winlose Periode")} ${fDate(s)} - ${fDate(e)}\n\n`;
+    ['LIVEGAME','SPORT','SLOT'].forEach(cat=>{
+        const catData=state.winlossData[cat];
+        text+=`${toBold(cat)}\n`; let catTotal=0;
+        (PROVIDERS[cat]||[]).forEach(p=>{ const val=catData?.[p]||0; if(val!==0){text+=`${p} : ${fc(val)}\n`; catTotal+=val;} });
+        text+=`\nTOTAL :   ${toBold(fc(catTotal))}\n\n`;
+    });
+    output.innerText=text;
+}
+
+function updateBonusHistory() {
+    const tbody=document.getElementById('bonusHistoryTable');
+    document.getElementById('bonusCountBadge').innerText=`${state.bonusHistory.length} Data`;
+    const output=document.getElementById('bonusOutput');
+    if (state.bonusHistory.length>0) {
+        const last=state.bonusHistory[state.bonusHistory.length-1];
+        output.innerHTML=`<div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%; margin-bottom:18px;">
+            <div style="background:rgba(0,153,255,0.08); border:1px solid rgba(0,153,255,0.15); border-radius:var(--radius); padding:14px;">
+                <p style="font-size:9px; color:var(--text-dim); margin-bottom:7px; text-transform:uppercase; letter-spacing:0.1em; font-weight:700; font-family:var(--font-display);">Livegame / Sport</p>
+                <p style="font-size:19px; font-weight:600; color:var(--neon-blue); font-family:var(--font-mono);">${fc(last.liveBonus)}</p>
+                <p style="font-size:10px; color:var(--text-dim); margin-top:5px;">Loss: ${fc(last.liveLoss)}</p>
+            </div>
+            <div style="background:rgba(191,0,255,0.08); border:1px solid rgba(191,0,255,0.15); border-radius:var(--radius); padding:14px;">
+                <p style="font-size:9px; color:var(--text-dim); margin-bottom:7px; text-transform:uppercase; letter-spacing:0.1em; font-weight:700; font-family:var(--font-display);">Slot</p>
+                <p style="font-size:19px; font-weight:600; color:var(--neon-violet); font-family:var(--font-mono);">${fc(last.slotBonus)}</p>
+                <p style="font-size:10px; color:var(--text-dim); margin-top:5px;">Loss: ${fc(last.slotLoss)}</p>
+            </div></div>
+            <div style="border-top:1px solid rgba(0,245,255,0.08); padding-top:16px; text-align:center; width:100%;">
+                <p style="font-size:9px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.12em; font-weight:700; font-family:var(--font-display);">Total Bonus</p>
+                <p class="total-display" style="margin-top:8px;">${fc(last.totalBonus)}</p>
+                <p style="font-size:12px; color:var(--neon-cyan); margin-top:10px; letter-spacing:0.06em; font-family:var(--font-mono);">@${last.userId}</p>
+            </div>`;
+    } else { output.innerHTML=`<p style="color:var(--text-dim); font-size:13px;">Hasil perhitungan bonus akan muncul di sini</p>`; }
+    if (state.bonusHistory.length===0) { tbody.innerHTML=`<tr><td colspan="5" style="text-align:center; color:var(--text-dim); padding:26px; font-size:12px;">Belum ada riwayat</td></tr>`; }
+    else { tbody.innerHTML=state.bonusHistory.slice().reverse().map((item,i)=>{ const idx=state.bonusHistory.length-1-i; return `<tr><td class="mono" style="font-size:12px; color:var(--neon-cyan);">@${item.userId}</td><td style="font-size:11px; color:var(--text-dim);">${item.date}</td><td style="text-align:right; font-family:var(--font-mono); font-size:12px; color:var(--neon-pink);">${fc(item.liveLoss+item.slotLoss)}</td><td style="text-align:right; font-family:var(--font-mono); font-size:12px; color:var(--neon-lime); font-weight:600;">${fc(item.totalBonus)}</td><td style="text-align:center;"><button onclick="deleteBonus(${idx})" style="background:none; border:none; cursor:pointer; opacity:0.4; transition:0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.4">🗑</button></td></tr>`; }).join(''); }
+}
+
+function updateDashboardStats() {
+    let turnover=0, loss=0;
+    Object.values(state.winlossData).forEach(cats=>Object.values(cats).forEach(val=>{ if(val<0) loss+=Math.abs(val); turnover+=Math.abs(val); }));
+    const totalBonus=state.bonusHistory.reduce((s,i)=>s+i.totalBonus,0);
+    animateValue('dashTurnover',turnover); animateValue('dashLoss',loss); animateValue('dashBonus',totalBonus);
+    animateValue('dashSlotSessions',state.slotBonusHistory.length);
+}
+
+function updateActivityLog() {
+    const tbody=document.getElementById('activityLogTable');
+    if (!state.activityLog||state.activityLog.length===0) { tbody.innerHTML=`<tr><td colspan="4" style="text-align:center; color:var(--text-dim); padding:26px; font-size:12px;">Belum ada aktivitas</td></tr>`; return; }
+    tbody.innerHTML=state.activityLog.slice().reverse().slice(0,5).map(log=>`<tr>
+        <td style="font-size:11px; color:var(--text-dim); font-family:var(--font-mono);">${new Date(log.time).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}</td>
+        <td><span class="badge ${log.type==='WINLOSS'?'badge-cyan':log.type==='SLOT_BONUS'?'badge-violet':'badge-lime'}" style="font-size:8px;">${log.type}</span></td>
+        <td style="font-size:12px; color:var(--text-mid);">${log.detail}</td>
+        <td style="text-align:right; font-family:var(--font-mono); font-size:12px; color:${log.amount<0?'var(--neon-pink)':'var(--neon-lime)'};">${fc(log.amount)}</td>
+    </tr>`).join('');
+}
+
+function initCharts() {
+    const cCat=document.getElementById('categoryChart').getContext('2d');
+    charts.category=new Chart(cCat,{type:'doughnut',data:{labels:['SLOT','LIVEGAME','SPORT'],datasets:[{data:[0,0,0],backgroundColor:['#BF00FF','#00F5FF','#39FF14'],borderWidth:0,hoverBorderWidth:2,hoverBorderColor:'#0C1420'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{position:'bottom',labels:{color:'#3A5570',font:{size:11,family:'Rajdhani'},padding:14}}}}});
+    const cBonus=document.getElementById('bonusChart').getContext('2d');
+    charts.bonus=new Chart(cBonus,{type:'bar',data:{labels:[],datasets:[{label:'Bonus',data:[],backgroundColor:'rgba(0,245,255,0.2)',borderColor:'#00F5FF',borderWidth:1,borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{grid:{color:'rgba(0,245,255,0.04)'},ticks:{color:'#3A5570',font:{size:10}},border:{color:'transparent'}},x:{grid:{display:false},ticks:{color:'#3A5570',font:{size:10}},border:{color:'transparent'}}},plugins:{legend:{display:false}}}});
+}
+
+function updateCharts() {
+    const totals={SLOT:0,LIVEGAME:0,SPORT:0};
+    Object.keys(state.winlossData).forEach(cat=>Object.values(state.winlossData[cat]).forEach(v=>{if(totals[cat]!==undefined)totals[cat]+=Math.abs(v);}));
+    charts.category.data.datasets[0].data=[totals.SLOT,totals.LIVEGAME,totals.SPORT]; charts.category.update();
+    const recent=state.bonusHistory.slice(-10);
+    charts.bonus.data.labels=recent.map(b=>b.userId.substring(0,8)); charts.bonus.data.datasets[0].data=recent.map(b=>b.totalBonus); charts.bonus.update();
+}
+
+function buildSbProviderInputs() {
+    const gc=document.getElementById('sbGroupInputs'); gc.innerHTML='';
+    Object.entries(SB_PROVIDER_GROUPS).forEach(([key,group])=>{
+        group.providers.forEach(pName=>{
+            const div=document.createElement('div'); div.className='prov-row gold';
+            div.innerHTML=`<div style="display:flex; align-items:center; gap:10px;"><div style="width:5px; height:5px; background:var(--neon-violet); border-radius:50%; box-shadow:0 0 5px var(--neon-violet);"></div><span style="font-size:12px; font-weight:600; color:var(--neon-violet);">${pName}</span><span class="badge badge-violet" style="font-size:8px;">Gold</span></div><input type="number" id="sb_input_${pName.replace(/[\s,]/g,'_')}" placeholder="0" min="0" oninput="sbLiveUpdate()" class="prov-inp gold-inp">`;
+            gc.appendChild(div);
+        });
+    });
+    const nc=document.getElementById('sbNormalInputs'); nc.innerHTML='';
+    SB_NORMAL_PROVIDERS.forEach(pName=>{
+        const div=document.createElement('div'); div.className='prov-row';
+        div.innerHTML=`<div style="display:flex; align-items:center; gap:10px;"><div style="width:5px; height:5px; background:var(--neon-cyan); border-radius:50%;"></div><span style="font-size:12px; color:var(--text-mid);">${pName}</span></div><input type="number" id="sb_input_${pName.replace(/[\s,]/g,'_')}" placeholder="0" min="0" oninput="sbLiveUpdate()" class="prov-inp">`;
+        nc.appendChild(div);
+    });
+}
+
+function renderSbGroupProviderList() {
+    const container=document.getElementById('sbGroupProviderList'); container.innerHTML='';
+    Object.values(SB_PROVIDER_GROUPS).forEach(group=>{
+        group.providers.forEach(p=>{
+            const div=document.createElement('div');
+            div.style.cssText=`display:flex; align-items:center; gap:8px; padding:7px 10px; background:rgba(191,0,255,0.06); border:1px solid rgba(191,0,255,0.12); border-radius:var(--radius-sm); margin-bottom:5px;`;
+            div.innerHTML=`<span style="color:var(--neon-violet); font-size:10px;">⭐</span><span style="font-size:12px; font-weight:600; color:var(--neon-violet); font-family:var(--font-display); letter-spacing:0.04em;">${p}</span>`;
+            container.appendChild(div);
+        });
+    });
+}
+
+function updateSbPctDisplays() {
+    const gPct=parseFloat(document.getElementById('sbGroupPct').value);
+    const nPct=parseFloat(document.getElementById('sbNormalPct').value);
+    document.getElementById('sbGroupPctDisplay').innerText=gPct+'%';
+    document.getElementById('sbNormalPctDisplay').innerText=nPct+'%';
+    document.getElementById('sbGroupPctNum').value=gPct;
+    document.getElementById('sbNormalPctNum').value=nPct;
+}
+function syncSbPct(type) {
+    if(type==='group') document.getElementById('sbGroupPct').value=document.getElementById('sbGroupPctNum').value;
+    else document.getElementById('sbNormalPct').value=document.getElementById('sbNormalPctNum').value;
+    updateSbPctDisplays();
+}
+function applySbPeriodFilter() {
+    const filter=document.getElementById('sbPeriodFilter').value;
+    const today=new Date(); let start=today, end=today;
+    if(filter==='week'){start=new Date(today); start.setDate(today.getDate()-today.getDay()); end=new Date(start); end.setDate(start.getDate()+6);}
+    else if(filter==='month'){start=new Date(today.getFullYear(),today.getMonth(),1); end=new Date(today.getFullYear(),today.getMonth()+1,0);}
+    else if(filter==='custom') return;
+    const fmt=d=>d.toISOString().split('T')[0];
+    document.getElementById('sbStartDate').value=fmt(start); document.getElementById('sbEndDate').value=fmt(end);
+}
+
+function getSbInputValue(providerName) {
+    const id='sb_input_'+providerName.replace(/[\s,]/g,'_');
+    const el=document.getElementById(id); return el?(parseFloat(el.value)||0):0;
+}
+function resetSbInputs() {
+    document.querySelectorAll('[id^="sb_input_"]').forEach(el=>el.value='');
+    document.getElementById('sbResultPanel').style.display='none';
+    document.getElementById('sbReportPanel').style.display='none';
+    lastSbResult=null;
+}
+function sbLiveUpdate() {}
+
+function calculateSlotBonus() {
+    const userId=document.getElementById('sbUserId').value.trim();
+    if (!userId) return showToast('Error','Masukkan User ID','error');
+    const groupPct=parseFloat(document.getElementById('sbGroupPct').value)/100;
+    const normalPct=parseFloat(document.getElementById('sbNormalPct').value)/100;
+    const minTurnover=parseFloat(document.getElementById('sbMinTurnover').value)||0;
+    const groupResults={};
+    Object.entries(SB_PROVIDER_GROUPS).forEach(([key,group])=>{
+        let groupTotal=0; const provBreakdown={};
+        group.providers.forEach(p=>{ const v=getSbInputValue(p); provBreakdown[p]=v; groupTotal+=v; });
+        const bonus=groupTotal*groupPct;
+        groupResults[key]={label:group.label,color:group.color,providers:provBreakdown,totalTurnover:groupTotal,bonusPct:groupPct,bonus};
+    });
+    const normalResults={};
+    SB_NORMAL_PROVIDERS.forEach(p=>{ const v=getSbInputValue(p); if(v>0) normalResults[p]={turnover:v,bonusPct:normalPct,bonus:v*normalPct}; });
+    const totalGroupTurnover=Object.values(groupResults).reduce((s,g)=>s+g.totalTurnover,0);
+    const totalNormalTurnover=Object.values(normalResults).reduce((s,n)=>s+n.turnover,0);
+    const totalTurnover=totalGroupTurnover+totalNormalTurnover;
+    const totalGroupBonus=Object.values(groupResults).reduce((s,g)=>s+g.bonus,0);
+    const totalNormalBonus=Object.values(normalResults).reduce((s,n)=>s+n.bonus,0);
+    const totalBonus=totalGroupBonus+totalNormalBonus;
+    const isEligible=totalTurnover>=minTurnover;
+    lastSbResult={userId,date:document.getElementById('sbStartDate').value,groupResults,normalResults,totalGroupTurnover,totalNormalTurnover,totalTurnover,totalGroupBonus,totalNormalBonus,totalBonus,isEligible,groupPct,normalPct,minTurnover};
+    state.slotBonusHistory.push({...lastSbResult,id:Date.now()});
+    logActivity('SLOT_BONUS',`User: ${userId}`,totalBonus);
+    saveData(); updateUI(); renderSbResult(lastSbResult);
+    showToast(isEligible?'Bonus Dihitung ⚡':'Tidak Eligible',`Total: ${fc(totalBonus)}`,isEligible?'success':'info');
+}
+
+function renderSbResult(r) {
+    const panel=document.getElementById('sbResultPanel');
+    const content=document.getElementById('sbResultContent');
+    panel.style.display='';
+    let html=`<div class="${r.isEligible?'eligible-yes':'eligible-no'}" style="margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div>
+            <p style="font-size:9px; font-weight:700; color:${r.isEligible?'var(--neon-lime)':'var(--neon-pink)'}; text-transform:uppercase; letter-spacing:0.1em; font-family:var(--font-display);">STATUS</p>
+            <p style="font-size:17px; font-weight:700; color:${r.isEligible?'var(--neon-lime)':'var(--neon-pink)'}; margin-top:4px; font-family:var(--font-display); letter-spacing:0.06em;">${r.isEligible?'✓ ELIGIBLE':'✗ TIDAK ELIGIBLE'}</p>
+        </div>
+        <div style="text-align:right;">
+            <p style="font-size:9px; color:var(--text-dim); font-family:var(--font-display); letter-spacing:0.08em;">MIN. TURNOVER</p>
+            <p style="font-size:14px; font-weight:600; color:var(--text-bright); font-family:var(--font-mono); margin-top:3px;">${fc(r.minTurnover)}</p>
+        </div>
+    </div>`;
+    html+=`<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px;">
+        <div style="background:rgba(191,0,255,0.08); border:1px solid rgba(191,0,255,0.12); border-radius:var(--radius); padding:13px;"><p style="font-size:9px; color:var(--neon-violet); font-weight:700; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px; font-family:var(--font-display);">Total Turnover</p><p style="font-size:14px; font-weight:600; color:var(--text-bright); font-family:var(--font-mono);">${fc(r.totalTurnover)}</p></div>
+        <div style="background:rgba(0,245,255,0.06); border:1px solid rgba(0,245,255,0.1); border-radius:var(--radius); padding:13px;"><p style="font-size:9px; color:var(--neon-cyan); font-weight:700; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px; font-family:var(--font-display);">Group Bonus</p><p style="font-size:14px; font-weight:600; color:var(--text-bright); font-family:var(--font-mono);">${fc(r.totalGroupBonus)}</p></div>
+        <div style="background:rgba(57,255,20,0.06); border:1px solid rgba(57,255,20,0.1); border-radius:var(--radius); padding:13px;"><p style="font-size:9px; color:var(--neon-lime); font-weight:700; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px; font-family:var(--font-display);">Normal Bonus</p><p style="font-size:14px; font-weight:600; color:var(--text-bright); font-family:var(--font-mono);">${fc(r.totalNormalBonus)}</p></div>
+    </div>`;
+    Object.values(r.groupResults).forEach(g=>{
+        if(g.totalTurnover===0) return;
+        html+=`<div style="background:rgba(191,0,255,0.06); border:1px solid rgba(191,0,255,0.15); border-radius:var(--radius); padding:14px; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:11px;">
+                <span style="font-size:12px; font-weight:700; color:var(--neon-violet); font-family:var(--font-display); letter-spacing:0.06em;">⭐ ${g.label} <span style="font-size:10px; color:var(--text-dim); font-weight:400;">(1× @ ${(r.groupPct*100).toFixed(1)}%)</span></span>
+                <span class="badge badge-violet">${fc(g.bonus)}</span>
+            </div>`;
+        Object.entries(g.providers).forEach(([pName,v])=>{
+            if(v===0) return;
+            const pct=g.totalTurnover>0?(v/g.totalTurnover*100).toFixed(1):'0';
+            html+=`<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(191,0,255,0.06);">
+                <span style="font-size:11px; color:var(--neon-violet);">↳ ${pName}</span>
+                <span class="mono" style="font-size:11px; color:var(--text-bright);">${fc(v)} <span style="color:var(--text-dim); font-size:10px;">(${pct}%)</span></span>
+            </div>`;
+        });
+        html+=`<div style="display:flex; justify-content:space-between; margin-top:9px;"><span style="font-size:11px; font-weight:700; color:var(--neon-violet);">Total Group</span><span class="mono" style="font-size:12px; font-weight:600; color:var(--neon-violet);">${fc(g.totalTurnover)}</span></div></div>`;
+    });
+    if(Object.keys(r.normalResults).length>0){
+        html+=`<div style="margin-bottom:13px;"><h4 style="font-size:9px; font-weight:700; color:var(--neon-cyan); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:9px; font-family:var(--font-display);">Provider Normal (@ ${(r.normalPct*100).toFixed(1)}%)</h4>`;
+        Object.entries(r.normalResults).forEach(([pName,n])=>{
+            html+=`<div class="prov-row" style="margin-bottom:5px;"><span style="font-size:12px; color:var(--text-mid);">${pName}</span><div style="display:flex; align-items:center; gap:12px;"><span class="mono" style="font-size:11px; color:var(--text-dim);">${fc(n.turnover)}</span><span class="badge badge-cyan" style="font-size:10px;">+${fc(n.bonus)}</span></div></div>`;
+        });
+        html+=`</div>`;
+    }
+    html+=`<div style="background:linear-gradient(135deg, rgba(0,245,255,0.08), rgba(191,0,255,0.06)); border:1px solid rgba(0,245,255,0.15); border-radius:var(--radius); padding:20px; text-align:center; margin-top:6px; box-shadow:0 0 30px rgba(0,245,255,0.05);">
+        <p style="font-size:9px; color:var(--neon-cyan); font-weight:700; text-transform:uppercase; letter-spacing:0.14em; margin-bottom:10px; font-family:var(--font-display);">⚡ TOTAL BONUS FINAL</p>
+        <p class="total-display">${fc(r.totalBonus)}</p>
+        <p style="font-size:11px; color:var(--text-dim); margin-top:10px; letter-spacing:0.06em; font-family:var(--font-mono);">@${r.userId} · ${r.date}</p>
+    </div>`;
+    content.innerHTML=html;
+    renderSbRanking(r);
+}
+
+function renderSbRanking(r) {
+    const container=document.getElementById('sbRankingContent');
+    const all=[];
+    Object.values(r.groupResults).forEach(g=>Object.entries(g.providers).forEach(([p,v])=>{if(v>0) all.push({name:p,turnover:v,type:'gold',bonus:v*r.groupPct});}));
+    Object.entries(r.normalResults).forEach(([p,n])=>all.push({name:p,turnover:n.turnover,type:'normal',bonus:n.bonus}));
+    all.sort((a,b)=>b.turnover-a.turnover);
+    if(all.length===0){container.innerHTML=`<p style="color:var(--text-dim); font-size:12px; text-align:center;">Tidak ada data turnover</p>`;return;}
+    const maxT=all[0].turnover;
+    const medals=['🥇','🥈','🥉'];
+    let html=`<div style="display:flex; flex-direction:column; gap:10px;">`;
+    all.forEach((item,i)=>{
+        const pct=(item.turnover/maxT*100).toFixed(0);
+        html+=`<div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:24px; text-align:center; flex-shrink:0; font-size:${i<3?'15':'11'}px; color:var(--text-dim); font-weight:700;">${i<3?medals[i]:'#'+(i+1)}</div>
+            <div style="flex:1;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <span style="font-size:12px; font-weight:600; color:${item.type==='gold'?'var(--neon-violet)':'var(--text-mid)'};">${item.name}</span>
+                    <span class="mono" style="font-size:11px; color:var(--text-dim);">${fc(item.turnover)}</span>
+                </div>
+                <div class="prog-bar"><div class="prog-fill" style="width:${pct}%; background:${item.type==='gold'?'linear-gradient(90deg,var(--neon-violet),var(--neon-pink))':'linear-gradient(90deg,var(--neon-cyan),var(--neon-blue))'}"></div></div>
+            </div>
+        </div>`;
+    });
+    html+=`</div>`;
+    container.innerHTML=html;
+}
+
+function generateSlotReport() {
+    if (!lastSbResult) return showToast('Error','Hitung bonus terlebih dahulu','error');
+    const r=lastSbResult;
+    const toBold=(str)=>str.split('').map(c=>{if(c>='A'&&c<='Z')return String.fromCodePoint(0x1D400+c.charCodeAt(0)-65);if(c>='a'&&c<='z')return String.fromCodePoint(0x1D41A+c.charCodeAt(0)-97);if(c>='0'&&c<='9')return String.fromCodePoint(0x1D7CE+c.charCodeAt(0)-48);return c;}).join('');
+    let report=`${toBold('LAPORAN BONUS SLOT - WATITOTO')}\n`;
+    report+=`User: @${r.userId}  |  Tanggal: ${r.date}\n`;
+    report+=`Status: ${r.isEligible?'✅ ELIGIBLE':'❌ TIDAK ELIGIBLE'}\n`;
+    report+=`${'─'.repeat(42)}\n\n`;
+    report+=`${toBold('GOLD GROUP')} (1× Bonus — Anti Double Count)\n`;
+    Object.values(r.groupResults).forEach(g=>{
+        if(g.totalTurnover>0){
+            Object.entries(g.providers).forEach(([p,v])=>{if(v>0) report+=`  ${p}: ${fc(v)}\n`;});
+            report+=`  Total Group : ${fc(g.totalTurnover)}\n  Bonus (${(r.groupPct*100).toFixed(1)}%) : ${fc(g.bonus)}\n\n`;
+        }
+    });
+    if(Object.keys(r.normalResults).length>0){
+        report+=`${toBold('PROVIDER NORMAL')} (Individual)\n`;
+        Object.entries(r.normalResults).forEach(([p,n])=>report+=`  ${p}: ${fc(n.turnover)}  →  Bonus: ${fc(n.bonus)}\n`);
+        report+=`\n`;
+    }
+    report+=`${'─'.repeat(42)}\n`;
+    report+=`Total Turnover  : ${toBold(fc(r.totalTurnover))}\n`;
+    report+=`Total Bonus     : ${toBold(fc(r.totalBonus))}\n`;
+    document.getElementById('sbReportOutput').value=report;
+    document.getElementById('sbReportPanel').style.display='';
+    showToast('Report ✓','Laporan berhasil dibuat');
+}
+
+function copySbReport() {
+    navigator.clipboard.writeText(document.getElementById('sbReportOutput').value).then(()=>showToast('Tersalin ✓','Laporan disalin ke clipboard'));
+}
+function exportSlotBonusPDF() { if(!lastSbResult) return showToast('Error','Hitung bonus terlebih dahulu','error'); window.print(); }
+
+function updateSbHistory() {
+    const tbody=document.getElementById('sbHistoryTable');
+    const badge=document.getElementById('sbHistoryCountBadge');
+    badge.innerText=`${state.slotBonusHistory.length} Session`;
+    if(state.slotBonusHistory.length===0){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center; color:var(--text-dim); padding:26px; font-size:12px;">Belum ada riwayat</td></tr>`;return;}
+    tbody.innerHTML=state.slotBonusHistory.slice().reverse().map((item,i)=>{
+        const idx=state.slotBonusHistory.length-1-i;
+        return `<tr><td class="mono" style="font-size:12px; color:var(--neon-cyan);">@${item.userId}</td><td style="font-size:11px; color:var(--text-dim);">${item.date}</td><td style="text-align:right; font-family:var(--font-mono); font-size:12px; color:var(--neon-violet);">${fc(item.totalTurnover)}</td><td style="text-align:right; font-family:var(--font-mono); font-size:12px; color:var(--neon-cyan);">${fc(item.totalGroupBonus)}</td><td style="text-align:right; font-family:var(--font-mono); font-size:12px; color:var(--text-mid);">${fc(item.totalNormalBonus)}</td><td style="text-align:right; font-family:var(--font-mono); font-size:12px; color:var(--neon-lime); font-weight:600;">${fc(item.totalBonus)}</td><td><span class="badge ${item.isEligible?'badge-lime':'badge-pink'}" style="font-size:8px;">${item.isEligible?'ELIGIBLE':'TIDAK'}</span></td><td style="text-align:center;"><button onclick="deleteSbHistory(${idx})" style="background:none; border:none; cursor:pointer; opacity:0.4; transition:0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.4">🗑</button></td></tr>`;
+    }).join('');
+}
+
+function deleteSbHistory(idx) { if(confirm('Hapus data ini?')){state.slotBonusHistory.splice(idx,1); saveData(); updateUI(); showToast('Terhapus','Data riwayat dihapus');} }
+function clearSbHistory() { if(confirm('Hapus semua riwayat slot bonus?')){state.slotBonusHistory=[]; saveData(); updateUI(); showToast('Reset','Riwayat slot bonus dihapus');} }
+
+function logActivity(type,detail,amount) { if(!state.activityLog) state.activityLog=[]; state.activityLog.push({time:Date.now(),type,detail,amount}); }
+function fc(amount) { return new Intl.NumberFormat('en-US',{maximumFractionDigits:0}).format(amount); }
+function animateValue(id,value) { const el=document.getElementById(id); if(el) el.innerText=new Intl.NumberFormat('id-ID',{notation:'compact'}).format(value); }
+function deleteBonus(index) { if(confirm('Hapus data bonus ini?')){state.bonusHistory.splice(index,1); saveData(); updateUI(); showToast('Terhapus','Data bonus dihapus');} }
+
+function clearAllData() {
+    if(confirm('PERINGATAN: Semua data akan dihapus permanen. Lanjutkan?')){
+        localStorage.removeItem('watitotoData_v1'); localStorage.removeItem('winlossCalcProData_v5');
+        state={winlossData:{},bonusHistory:[],activityLog:[],slotBonusHistory:[]}; updateUI(); updateCharts();
+        showToast('Reset ⚡','Aplikasi di-reset ke awal');
+    }
+}
+
+function copyToClipboard() { navigator.clipboard.writeText(document.getElementById('reportOutput').innerText).then(()=>showToast('Tersalin ✓','Laporan disalin ke clipboard')); }
+
+let toastTimer;
+function showToast(title,msg,type='success') {
+    const toast=document.getElementById('toast');
+    document.getElementById('toastTitle').innerText=title;
+    document.getElementById('toastMessage').innerText=msg;
+    const colors={success:'var(--neon-lime)',error:'var(--neon-pink)',info:'var(--neon-cyan)'};
+    const icons={
+        success:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${colors.success}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
+        error:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${colors.error}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>`,
+        info:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${colors.info}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>`
+    };
+    document.getElementById('toastIcon').innerHTML=icons[type]||icons.success;
+    clearTimeout(toastTimer); toast.classList.add('show');
+    toastTimer=setTimeout(()=>toast.classList.remove('show'),3200);
+}
+
+function exportData() {
+    const a=document.createElement('a');
+    a.href='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(state));
+    a.download='backup_watitoto_'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    showToast('Backup ✓','File JSON berhasil didownload');
+}
+
+function importData(input) {
+    const file=input.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+        try {
+            const json=JSON.parse(e.target.result);
+            if(json.winlossData||json.bonusHistory){
+                state={winlossData:{},bonusHistory:[],activityLog:[],slotBonusHistory:[],...json};
+                saveData(); updateUI(); updateCharts(); showToast('Restore ✓','Data berhasil dipulihkan');
+            } else throw new Error();
+        } catch { showToast('Error','File JSON tidak valid','error'); }
+    };
+    reader.readAsText(file); input.value='';
+}
+
+function setupDragDrop() {
+    const dropZone=document.getElementById('dropZone');
+    const textArea=document.getElementById('dataInput');
+    if(!dropZone) return;
+    ['dragenter','dragover','dragleave','drop'].forEach(ev=>dropZone.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();}));
+    dropZone.addEventListener('dragenter',()=>dropZone.classList.add('active'));
+    dropZone.addEventListener('dragover',()=>dropZone.classList.add('active'));
+    dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('active'));
+    dropZone.addEventListener('drop',e=>{
+        dropZone.classList.remove('active');
+        if(e.dataTransfer.files.length>0){const r=new FileReader(); r.onload=ev=>{textArea.value=ev.target.result;}; r.readAsText(e.dataTransfer.files[0]);}
+    });
+}
+
+// ============================================
+// NEON CUSTOM DATE PICKER ENGINE
+// ============================================
+const CAL_STATE = {}; // fieldId -> { year, month, viewMode }
+const MONTHS_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+const DAYS_SHORT = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+
+function initCal(fieldId) {
+    const today = new Date();
+    CAL_STATE[fieldId] = {
+        year: today.getFullYear(),
+        month: today.getMonth(),
+        viewMode: 'days' // 'days' | 'months' | 'years'
+    };
+}
+
+function toggleCal(fieldId) {
+    const calEl = document.getElementById(fieldId + '_cal');
+    const isOpen = calEl.classList.contains('open');
+    // Close all open calendars
+    document.querySelectorAll('.neon-cal.open').forEach(el => el.classList.remove('open'));
+    if (!isOpen) {
+        if (!CAL_STATE[fieldId]) initCal(fieldId);
+        // Pre-set calendar to current value
+        const val = document.getElementById(fieldId).value;
+        if (val) {
+            const d = new Date(val + 'T00:00:00');
+            CAL_STATE[fieldId].year = d.getFullYear();
+            CAL_STATE[fieldId].month = d.getMonth();
+        }
+        renderCal(fieldId);
+        calEl.classList.add('open');
+    }
+}
+
+function renderCal(fieldId) {
+    const st = CAL_STATE[fieldId];
+    const calEl = document.getElementById(fieldId + '_cal');
+    const selectedVal = document.getElementById(fieldId).value;
+    const today = new Date();
+
+    if (st.viewMode === 'months') {
+        let html = `<div class="cal-header">
+            <button class="cal-nav-btn" onclick="calNavYear('${fieldId}',-1)">‹</button>
+            <span class="cal-month-year" onclick="calSetView('${fieldId}','years')">${st.year}</span>
+            <button class="cal-nav-btn" onclick="calNavYear('${fieldId}',1)">›</button>
+        </div>
+        <div class="cal-ym-grid">`;
+        MONTHS_ID.forEach((m, i) => {
+            const isActive = (st.year === (selectedVal ? new Date(selectedVal+'T00:00:00').getFullYear() : -1)) &&
+                             (i === (selectedVal ? new Date(selectedVal+'T00:00:00').getMonth() : -1));
+            html += `<div class="cal-ym-item ${isActive?'active':''}" onclick="calPickMonth('${fieldId}',${i})">${MONTHS_SHORT[i]}</div>`;
+        });
+        html += `</div>`;
+        calEl.innerHTML = html;
+        return;
+    }
+
+    if (st.viewMode === 'years') {
+        const baseYear = Math.floor(st.year / 12) * 12;
+        let html = `<div class="cal-header">
+            <button class="cal-nav-btn" onclick="calNavYearBlock('${fieldId}',-1)">‹</button>
+            <span class="cal-month-year">${baseYear}–${baseYear+11}</span>
+            <button class="cal-nav-btn" onclick="calNavYearBlock('${fieldId}',1)">›</button>
+        </div>
+        <div class="cal-ym-grid">`;
+        for (let y = baseYear; y < baseYear + 12; y++) {
+            const isActive = y === (selectedVal ? new Date(selectedVal+'T00:00:00').getFullYear() : -1);
+            html += `<div class="cal-ym-item ${isActive?'active':''}" onclick="calPickYear('${fieldId}',${y})">${y}</div>`;
+        }
+        html += `</div>`;
+        calEl.innerHTML = html;
+        return;
+    }
+
+    // Day view
+    const firstDay = new Date(st.year, st.month, 1).getDay();
+    const daysInMonth = new Date(st.year, st.month + 1, 0).getDate();
+    const daysInPrev = new Date(st.year, st.month, 0).getDate();
+
+    let html = `<div class="cal-header">
+        <button class="cal-nav-btn" onclick="calNavMonth('${fieldId}',-1)">‹</button>
+        <span class="cal-month-year" onclick="calSetView('${fieldId}','months')">${MONTHS_ID[st.month]} ${st.year}</span>
+        <button class="cal-nav-btn" onclick="calNavMonth('${fieldId}',1)">›</button>
+    </div>
+    <div class="cal-days-header">`;
+    DAYS_SHORT.forEach(d => { html += `<div class="cal-day-name">${d}</div>`; });
+    html += `</div><div class="cal-grid">`;
+
+    // Prev month days
+    for (let i = firstDay - 1; i >= 0; i--) {
+        html += `<div class="cal-day other-month empty">${daysInPrev - i}</div>`;
+    }
+
+    // Current month days
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${st.year}-${String(st.month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const isToday = (d === today.getDate() && st.month === today.getMonth() && st.year === today.getFullYear());
+        const isSelected = dateStr === selectedVal;
+        html += `<div class="cal-day ${isToday?'today':''} ${isSelected?'selected':''}" onclick="calPickDate('${fieldId}','${dateStr}')">${d}</div>`;
+    }
+
+    // Next month fill
+    const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+    for (let d = 1; d <= totalCells - firstDay - daysInMonth; d++) {
+        html += `<div class="cal-day other-month empty">${d}</div>`;
+    }
+    html += `</div>`;
+
+    // Footer
+    const selDate = selectedVal ? formatDateDisplay(selectedVal) : '—';
+    html += `<div class="cal-footer">
+        <button class="cal-today-btn" onclick="calPickToday('${fieldId}')">⚡ Hari Ini</button>
+        <span class="cal-selected-label">${selDate}</span>
+        <button class="cal-clear-btn" onclick="calClear('${fieldId}')">✕ Reset</button>
+    </div>`;
+
+    calEl.innerHTML = html;
+}
+
+function calNavMonth(fieldId, dir) {
+    const st = CAL_STATE[fieldId];
+    st.month += dir;
+    if (st.month < 0) { st.month = 11; st.year--; }
+    if (st.month > 11) { st.month = 0; st.year++; }
+    renderCal(fieldId);
+}
+function calNavYear(fieldId, dir) { CAL_STATE[fieldId].year += dir; renderCal(fieldId); }
+function calNavYearBlock(fieldId, dir) { CAL_STATE[fieldId].year += dir * 12; renderCal(fieldId); }
+function calSetView(fieldId, mode) { CAL_STATE[fieldId].viewMode = mode; renderCal(fieldId); }
+function calPickMonth(fieldId, month) { CAL_STATE[fieldId].month = month; CAL_STATE[fieldId].viewMode = 'days'; renderCal(fieldId); }
+function calPickYear(fieldId, year) { CAL_STATE[fieldId].year = year; CAL_STATE[fieldId].viewMode = 'months'; renderCal(fieldId); }
+
+function calPickDate(fieldId, dateStr) {
+    document.getElementById(fieldId).value = dateStr;
+    const btn = document.getElementById(fieldId + '_btn');
+    const lbl = document.getElementById(fieldId + '_label');
+    lbl.textContent = formatDateDisplay(dateStr);
+    btn.classList.add('has-value');
+    document.getElementById(fieldId + '_cal').classList.remove('open');
+    // Trigger onChange callbacks
+    if (fieldId === 'startDate' || fieldId === 'endDate') handleDateChange();
+    renderCal(fieldId);
+}
+
+function calPickToday(fieldId) {
+    const today = new Date();
+    const dateStr = today.toISOString().split('T')[0];
+    calPickDate(fieldId, dateStr);
+}
+
+function calClear(fieldId) {
+    document.getElementById(fieldId).value = '';
+    const btn = document.getElementById(fieldId + '_btn');
+    const lbl = document.getElementById(fieldId + '_label');
+    lbl.textContent = 'Pilih Tanggal';
+    btn.classList.remove('has-value');
+    renderCal(fieldId);
+    if (fieldId === 'startDate' || fieldId === 'endDate') handleDateChange();
+}
+
+function formatDateDisplay(dateStr) {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr + 'T00:00:00');
+    return `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+// Close calendar when clicking outside
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.neon-date-wrap')) {
+        document.querySelectorAll('.neon-cal.open').forEach(el => el.classList.remove('open'));
+    }
+});
+
+</script>
+</body>
+</html>
